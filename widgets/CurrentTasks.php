@@ -30,7 +30,6 @@ class CurrentTasks extends Widget
             'name',
             'date',
             'description:ntext',
-            'user_id',
 
             ['class' => 'yii\grid\ActionColumn'],
         ],
