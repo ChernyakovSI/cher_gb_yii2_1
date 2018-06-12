@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use app\models\ActiveRecord\User;
+use app\models\events\AfterNewTaskCreated;
 use Yii;
 use app\models\ActiveRecord\Task;
 use app\models\ActiveRecord\TaskSearch;
@@ -66,7 +68,12 @@ class AdminTaskController extends Controller
     {
         $model = new Task();
 
+        $model->refreshDateOfCreate($model);
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
+
+            if (($cur_user = User::findOne(\yii::$app->user->id)) !== null) {
+                $model->trigger($model::NEW_TASK_CREATED, new AfterNewTaskCreated(['Email' => $cur_user->email]));
+            }
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
@@ -86,6 +93,7 @@ class AdminTaskController extends Controller
     {
         $model = $this->findModel($id);
 
+        $model->refreshDateOfUpdate($model);
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         }

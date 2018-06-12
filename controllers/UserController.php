@@ -66,6 +66,7 @@ class UserController extends Controller
     {
         $model = new User();
 
+        $model->refreshDateOfCreate($model);
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         }
@@ -86,6 +87,7 @@ class UserController extends Controller
     {
         $model = $this->findModel($id);
 
+        $model->refreshDateOfUpdate($model);
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         }
