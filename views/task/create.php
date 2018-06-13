@@ -25,8 +25,8 @@ $form = ActiveForm::begin([
 ]);
 
 echo $form->field($model, 'name')->textInput();
-//echo $form->field($model, 'date')->textInput(['type' => 'date']);
-echo $form->field($model, 'date')->widget(\yii\jui\DatePicker::class, []);
+echo $form->field($model, 'date')->textInput(['type' => 'date']);
+//echo $form->field($model, 'date')->widget(\yii\jui\DatePicker::class, []);
 echo $form->field($model, 'description')->textarea();
 echo $form->field($model, 'user_id')->textInput();
 
