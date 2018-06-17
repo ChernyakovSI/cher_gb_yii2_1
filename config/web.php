@@ -19,6 +19,23 @@ $config = [
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
+
+        'cache2'=>array(
+            'class'=>'CMemCache',
+            'servers'=>array(
+                array(
+                    'host'=>'server1',
+                    'port'=>11211,
+                    'weight'=>60,
+                ),
+                array(
+                    'host'=>'server2',
+                    'port'=>11211,
+                    'weight'=>40,
+                ),
+            ),
+        ),
+
         'user' => [
             'identityClass' => 'app\models\User',
             'enableAutoLogin' => true,

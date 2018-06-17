@@ -7,6 +7,8 @@ use app\models\events\AfterNewTaskCreated;
 use Yii;
 use app\models\ActiveRecord\Task;
 use app\models\ActiveRecord\TaskSearch;
+use yii\caching\DbDependency;
+use yii\filters\PageCache;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -22,6 +24,26 @@ class AdminTaskController extends Controller
     public function behaviors()
     {
         return [
+            'cache' => [
+                'class' => PageCache::class,
+                'duration' => 60,
+                'variations' => [\yii::$app->language],
+                //'dependency' => [
+                //    'class' => DbDependency::class,
+                //    'sql' => ''
+                //]
+                'only' => ['index']
+            ],
+            'cache2' => [
+                'class' => PageCache::class,
+                'duration' => 120,
+                'variations' => [\yii::$app->language],
+                //'dependency' => [
+                //    'class' => DbDependency::class,
+                //    'sql' => ''
+                //]
+                'only' => ['view']
+            ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
@@ -54,8 +76,22 @@ class AdminTaskController extends Controller
      */
     public function actionView($id)
     {
+        /*$cache = \yii::$app->cache;
+        $key = 'task'.$id;
+
+        $dependency = new DbDependency();
+        $dependency->sql = "SELECT count(*) FROM task";
+
+        //$cache->flush();
+
+        if(!$model = $cache->get($key)) {
+            $model = $this->findModel($id);
+            $cache->set($key, $model, \yii::$app->params['defaultCacheTime'], $dependency);
+        }*/
+
+        $model = $this->findModel($id);
         return $this->render('view', [
-            'model' => $this->findModel($id),
+            'model' => $model,
         ]);
     }
 
@@ -68,12 +104,20 @@ class AdminTaskController extends Controller
     {
         $model = new Task();
 
-        $model->refreshDateOfCreate($model);
+        //$model->refreshDateOfCreate($model);
+        $model->on(Task::EVENT_AFTER_INSERT, function($e){
+            $model = new Task();
+            $userId = $model->getTaskById($e->sender->user_id);
+            $userTo = User::findOne(['id' => $userId]);
+            $model->sendEmail(['email' => $userTo->email,
+                'body' => 'Для вас создана новая задача http://yii2-1.local/index.php?r=task/view?id='.$e->sender->id,
+                'subject' => 'Новая задача']);
+        });
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
 
-            if (($cur_user = User::findOne(\yii::$app->user->id)) !== null) {
-                $model->trigger($model::NEW_TASK_CREATED, new AfterNewTaskCreated(['Email' => $cur_user->email]));
-            }
+            //if (($cur_user = User::findOne(\yii::$app->user->id)) !== null) {
+            //    $model->trigger($model::NEW_TASK_CREATED, new AfterNewTaskCreated(['Email' => $cur_user->email]));
+            //}
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
@@ -93,7 +137,7 @@ class AdminTaskController extends Controller
     {
         $model = $this->findModel($id);
 
-        $model->refreshDateOfUpdate($model);
+        //$model->refreshDateOfUpdate($model);
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         }

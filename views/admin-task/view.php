@@ -25,15 +25,27 @@ $this->params['breadcrumbs'][] = $this->title;
         ]) ?>
     </p>
 
-    <?= DetailView::widget([
-        'model' => $model,
-        'attributes' => [
-            'id',
-            'name',
-            'date',
-            'description:ntext',
-            'user_id',
-        ],
-    ]) ?>
+    <?
+    //$key = 'task'.$model->id;
+
+    if($this->beginCache('task', [
+            'duration' => 20,
+        //'dependency'
+        //'enabled' => true
+        'variation' => [$model->id, \yii::$app->language]
+    ])){
+        echo DetailView::widget([
+            'model' => $model,
+            'attributes' => [
+                'id',
+                'name',
+                'date',
+                'description:ntext',
+                'user_id',
+            ],
+        ]);
+        $this->endCache();
+    }
+    ?>
 
 </div>
